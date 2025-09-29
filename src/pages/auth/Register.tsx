@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import api from '../../api/axios';
+import { toast } from "react-toastify";
 
 // ✅ Schema: Only name + email now
 const schema = z.object({
@@ -29,9 +30,9 @@ export default function Register() {
       return res.data;
     },
     onSuccess: () =>
-      alert("✅ Registered successfully! Please check your email to set a password."),
+      toast.success("✅ Registered successfully! Please check your email to set a password."),
     onError: (err: any) => {
-      alert(
+      toast.error(
         err.response?.data?.message || "❌ Registration failed, try a different email."
       );
     },

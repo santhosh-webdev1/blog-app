@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../api/axios";
+import { toast } from "react-toastify";
 
 // ✅ Validation Schema
 const schema = z.object({
@@ -32,12 +33,12 @@ export default function Login() {
       return res.data; // { user: {...} } if you follow the controller we made
     },
     onSuccess: () => {
-      alert("Login successfull");
+      toast.success("Login Successfull")
       navigate("/");
     },
     onError: (err: any) => {
-      alert(
-        err.response?.data?.message || "❌ Login failed. Check credentials."
+      toast.error(
+        err.response?.data?.message || " Login failed. Check credentials."
       );
     },
   });

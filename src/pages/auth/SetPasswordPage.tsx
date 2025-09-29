@@ -2,47 +2,54 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import api from "../../api/axios";
+import { toast } from "react-toastify";
 
 export default function SetPassword() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const token = searchParams.get("token");
+  const token = decodeURIComponent(searchParams.get("token") || "");
+  const email = decodeURIComponent(searchParams.get("email") || "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   // ✅ 1) Verify Token
   const {
-    data: isValid,      // ✅ will be true / false
+    data: isValid,      //  will be true / false
     isPending,
     isError
   } = useQuery({
     queryKey: ["verifyToken", token],
     queryFn: async () => {
+
+      //ensure to not be null
       if (!token) throw new Error("Token is required");
+      if (!email || !token) throw new Error("Email and token are required");
+
       // Backend expects token as query param
       const res = await api.post(
-        `/auth/validate-token?token=${encodeURIComponent(token)}`
+        `/auth/validate-token?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`
       );
       return res.data as boolean; // backend returns true/false
     },
     enabled: !!token
   });
 
-  // ✅ 2) Submit Password
+  //  2) Submit Password
   const mutation = useMutation({
     mutationFn: async () => {
       const res = await api.post("/auth/set-password", {
+        email,
         token,
         password
       });
       return res.data;
     },
     onSuccess: () => {
-      alert("✅ Password set successfully!");
+      toast.success("Password set successfully!");
       navigate("/login");
     },
     onError: (err: any) => {
-      alert(err.response?.data?.message || "❌ Failed to set password");
+      toast.error(err.response?.data?.message || " Failed to set password");
     }
   });
 
@@ -101,11 +108,11 @@ export default function SetPassword() {
           <button
             onClick={() => {
               if (!password || !confirmPassword) {
-                alert("Please fill in all fields");
+                toast.error("Please fill in all fields");
                 return;
               }
               if (password !== confirmPassword) {
-                alert("Passwords do not match");
+                toast.error("Passwords do not match");
                 return;
               }
               mutation.mutate();
