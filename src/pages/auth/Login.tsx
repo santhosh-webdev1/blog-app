@@ -34,7 +34,7 @@ export default function Login() {
     },
     onSuccess: () => {
       toast.success("Login Successfull")
-      navigate("/");
+      navigate("/home");
     },
     onError: (err: any) => {
       toast.error(

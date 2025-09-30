@@ -1,34 +1,54 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../../api/axios";
 import MyPostCard from "../../components/MyPostCard";
+import { updatePost, deletePost } from "../../api/posts";
 
-export default function MyPosts() {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["myPosts"],
+export default function MyPostPage() {
+  const queryClient = useQueryClient();
+
+  // Load user’s posts
+  const { data, isLoading } = useQuery({
+    queryKey: ["myposts"],
     queryFn: async () => {
       const res = await api.get("/posts/myposts");
       return res.data;
     },
   });
 
-  if (isLoading) return <div className="text-center py-10">Loading...</div>;
-  if (isError) return <div className="text-center text-red-500 py-10">Failed to load posts.</div>;
+  // Mutation for update
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { title: string; content: string } }) =>
+      updatePost(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myposts"] });
+    },
+  });
 
-  const posts = data || [];
+  // Mutation for delete
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deletePost(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myposts"] });
+    },
+  });
+
+  if (isLoading) return <div>Loading…</div>;
 
   return (
-    <div className="w-full flex flex-col items-center px-4 sm:px-8 md:px-12 lg:px-20">
-      {posts.length === 0 ? (
-        <div className="text-center text-gray-500 text-lg font-medium py-20">
-          🚫 You haven’t posted anything yet!
-        </div>
-      ) : (
-        <div className="w-full max-w-3xl space-y-6">
-          {posts.map((post: any) => (
-            <MyPostCard key={post.id} post={post} />
-          ))}
-        </div>
-      )}
+    <div className="space-y-6">
+      {data.map((post: any) => (
+        <MyPostCard
+          key={post.id}
+          post={post}
+          onEdit={() =>
+            updateMutation.mutate({
+              id: post.id,
+              data: { title: "Updated Title", content: "Updated Content" }, // placeholder
+            })
+          }
+          onDelete={() => deleteMutation.mutate(post.id)}
+        />
+      ))}
     </div>
   );
 }

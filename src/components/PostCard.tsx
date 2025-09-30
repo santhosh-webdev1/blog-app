@@ -1,95 +1,64 @@
-import { useState } from "react";
+import { Link } from "react-router-dom";
 
 interface Post {
-  id: string;
+  id: string | number;
   title: string;
   content: string;
-  user?: { name: string };
+  user?: { name?: string };
+  createdAt?: string;
 }
 
 export default function PostCard({ post }: { post: Post }) {
-  const [showComments, setShowComments] = useState(false);
-
-  //  Truncate content to ~100 words
-  const contentPreview = post.content
-    .split(/\s+/)
-    .slice(0, 100)
-    .join(" ") + (post.content.split(/\s+/).length > 100 ? "…" : "");
+  const contentPreview =
+    post.content.split(/\s+/).slice(0, 80).join(" ") +
+    (post.content.split(/\s+/).length > 80 ? "…" : "");
 
   return (
-    <div
-      className="
-        w-full max-w-full
-        bg-white rounded-2xl shadow-md border border-gray-100
-        p-6 md:p-8
-        hover:shadow-lg hover:-translate-y-1
-        transition-all duration-200
-        overflow-hidden
-      "
+    // h-[380px] gives taller fixed height, flex layout keeps footer pinned
+    <article
+      className="h-[220px] flex flex-col bg-white border border-gray-200
+                 rounded-xl shadow-sm p-6 hover:shadow-md transition"
+      aria-labelledby={`post-title-${post.id}`}
     >
       {/* Title */}
-      <h2
-        className="
-          text-2xl font-semibold text-gray-800 mb-3
-          break-words break-all whitespace-pre-wrap
-        "
-      >
-        {post.title}
-      </h2>
-
-      {/* Content */}
-      <p
-        className="
-          text-gray-700 leading-relaxed mb-6
-          break-words break-all whitespace-pre-wrap
-          overflow-hidden
-        "
-      >
-        {contentPreview}
-      </p>
-
-      {/* Footer */}
-      {post.user && (
-        <div
-          className="
-            flex flex-col sm:flex-row sm:items-center sm:justify-between
-            gap-4 text-sm
-          "
+      <header className="mb-4">
+        <h2
+          id={`post-title-${post.id}`}
+          className="text-2xl font-semibold text-gray-900 line-clamp-2"
         >
-          <span className="text-gray-500">
-            By{" "}
-            <span className="font-medium text-purple-700">
-              {post.user.name}
+          {post.title}
+        </h2>
+        {post.createdAt && (
+          <p className="text-xs text-gray-400 mt-1">
+            {new Date(post.createdAt).toLocaleDateString()}
+          </p>
+        )}
+      </header>
+
+      {/* Content Preview – exactly 2 lines */}
+      <div className="flex-1 mb-4 text-gray-700 leading-relaxed">
+        <p className="text-lg line-clamp-2">{contentPreview}</p>
+      </div>
+
+      {/* Footer pinned at bottom */}
+      <footer className="mt-auto flex items-center justify-between text-sm text-gray-500">
+        <div>
+          {post.user ? (
+            <span>
+              By <span className="font-medium text-gray-800">{post.user.name}</span>
             </span>
-          </span>
-
-          <button
-            onClick={() => setShowComments((prev) => !prev)}
-            className="
-              inline-flex items-center justify-center
-              px-5 py-2 rounded-lg font-medium
-              bg-gradient-to-r from-purple-600 to-indigo-600
-              text-white shadow
-              hover:from-purple-500 hover:to-indigo-500
-              active:scale-95 transition-all duration-150
-            "
-          >
-            {showComments ? "Hide Comments" : "Show Comments"}
-          </button>
+          ) : (
+            <span>By Unknown</span>
+          )}
         </div>
-      )}
 
-      {/* Comments Section */}
-      {showComments && (
-        <div
-          className="
-            mt-6 pt-6 border-t border-gray-200 text-gray-600
-            break-words break-all whitespace-pre-wrap
-          "
+        <Link
+          to={`/posts/${post.id}`}
+          className="text-gray-700 hover:text-gray-900 font-medium"
         >
-          <p className="italic">Comments coming soon…</p>
-        </div>
-      )}
-    </div>
+          Read more →
+        </Link>
+      </footer>
+    </article>
   );
 }

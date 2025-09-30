@@ -1,14 +1,14 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
-export default function ProtectedRoute() {
+export default function PublicRoute() {
   const { data: user, isLoading } = useAuth();
 
   if (isLoading) return <div>Loading...</div>;
 
-  if (!user) {
-    return <Navigate to="/" replace />; // not logged in → back to feeds
+  if (user) {
+    return <Navigate to="/home" replace />; // already logged in → go to dashboard
   }
 
-  return <Outlet />; // render protected content
+  return <Outlet />; // otherwise show public routes
 }

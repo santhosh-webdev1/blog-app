@@ -1,101 +1,57 @@
-import { useMutation } from "@tanstack/react-query";
-import { Link, Navigate, NavLink, Outlet, useNavigate } from "react-router-dom";
+// src/pages/blogs/HomeLayout.tsx
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import { toast } from "react-toastify";
+import { useQueryClient } from "@tanstack/react-query";
+
 
 export default function HomeLayout() {
-
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  // logout
-  const mutation = useMutation({
-    mutationFn: async () => {
-      const res = await api.post("auth/logout");
-      return res.data;
-    },
-
-    onSuccess: () => {
-      toast.success("Logged out Successfully");
-      navigate("/login");
-    },
-
-    onError: (err: any) => {
-      toast.error(err.response?.data?.message || " Logout failed")
-    }
-  })
-
+  const handleLogout = async () => {
+  try {
+    await api.post("/auth/logout");
+    queryClient.removeQueries({ queryKey: ["auth"] }); // 🔥 clears cached user
+    toast.success("Logged out successfully");
+    navigate("/"); // back to public feed
+  } catch (err) {
+    toast.error("Logout failed");
+  }
+}; 
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200">
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <aside
-        className="w-72 bg-gradient-to-b from-purple-700 via-purple-800 to-indigo-800
-                   text-white shadow-2xl flex flex-col p-6 rounded-r-3xl
-                   border-r border-purple-500/20 backdrop-blur-md"
-      >
-        {/* Brand */}
-        <div className="flex items-center justify-center mb-12">
-          <h1 className="text-3xl font-extrabold tracking-wide drop-shadow-md">
-            My<span className="text-purple-300">Blog</span>
-          </h1>
+      <aside className="w-64 bg-gradient-to-b from-gray-800 to-gray-700 text-white flex flex-col justify-between">
+        <div>
+          <div className="p-6 text-2xl font-bold border-b border-gray-600">
+            Dashboard
+          </div>
+          <nav className="flex flex-col p-4 gap-4">
+            <Link to="/myposts" className="hover:text-gray-300">
+              My Posts
+            </Link>
+            <Link to="/create" className="hover:text-gray-300">
+              Create Post
+            </Link>
+            <Link to="/profile" className="hover:text-gray-300">
+              Profile
+            </Link>
+          </nav>
         </div>
-
-        {/* Navigation */}
-        <nav className="flex flex-col gap-3">
-          <NavItem to="/">Post Feed</NavItem>
-          <NavItem to="create">Create Post</NavItem>
-          <NavItem to="myposts">My Posts</NavItem>
-          <NavItem to="profile">User Profile</NavItem>
-        </nav>
-
-        {/* Footer */}
-        <div className="mt-auto pt-6 border-t border-purple-400/30">
-          <button
-            onClick={() => mutation.mutate()}
-            className="w-full text-center py-2 px-4 rounded-xl font-semibold
-             bg-purple-500/80 hover:bg-purple-400/90 active:scale-95
-             transition-all duration-200 shadow-md"
-          >
-            Logout
-          </button>
-        </div>
+        <button
+          onClick={handleLogout}
+          className="m-4 px-4 py-2 rounded bg-red-500 hover:bg-red-600 transition"
+        >
+          Logout
+        </button>
       </aside>
 
-      {/* Main Content */}
-      <main
-        className="flex-1 overflow-y-auto p-10
-                   bg-gradient-to-br from-gray-100 to-gray-200
-                   shadow-inner"
-      >
-        <Outlet /> {/* 👉 Child routes */}
+      {/* Main content */}
+      <main className="flex-1 p-8 overflow-y-auto">
+        <Outlet />
       </main>
     </div>
-  );
-}
-
-function NavItem({
-  to,
-  children,
-}: {
-  to: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <NavLink
-      to={to}
-      end
-      className={({ isActive }) =>
-        `group flex items-center gap-3 px-4 py-3 rounded-xl font-medium
-         transition-all duration-200
-         ${isActive
-          ? "bg-white/20 text-white shadow-lg ring-1 ring-white/30"
-          : "text-purple-100 hover:bg-white/10 hover:text-purple-50"
-        }`
-      }
-    >
-      <span className="transition-transform group-hover:translate-x-1">
-        {children}
-      </span>
-    </NavLink>
   );
 }

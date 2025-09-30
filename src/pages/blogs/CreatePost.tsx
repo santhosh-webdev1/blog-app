@@ -17,7 +17,6 @@ type FormData = z.infer<typeof schema>;
 export default function CreatePost() {
   const navigate = useNavigate();
 
-  // Form Hook
   const {
     register,
     handleSubmit,
@@ -26,13 +25,12 @@ export default function CreatePost() {
     resolver: zodResolver(schema),
   });
 
-  // API Mutation
   const mutation = useMutation({
     mutationFn: async (data: FormData) =>
       api.post("/posts", data, { withCredentials: true }),
     onSuccess: () => {
       toast.success("Post created successfully!");
-      navigate("/"); // redirect to feed or My Posts
+      navigate("/myposts");
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || "Something went wrong");
@@ -43,33 +41,39 @@ export default function CreatePost() {
 
   return (
     <div className="flex justify-center items-start w-full">
-      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-2xl mt-10">
-        <h2 className="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-purple-500 to-indigo-500 bg-clip-text text-transparent">
+      <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-8 w-full max-w-2xl mt-10">
+        <h2 className="text-2xl font-semibold text-gray-900 text-center mb-6">
           Create a New Post
         </h2>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Title */}
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Title</label>
+            <label className="block text-gray-700 font-medium mb-1">
+              Title
+            </label>
             <input
               type="text"
               {...register("title")}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
               placeholder="Enter post title"
             />
             {errors.title && (
-              <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
+              <p className="text-red-500 text-sm mt-1">
+                {errors.title.message}
+              </p>
             )}
           </div>
 
           {/* Content */}
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Content</label>
+            <label className="block text-gray-700 font-medium mb-1">
+              Content
+            </label>
             <textarea
               {...register("content")}
               rows={6}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-gray-400"
               placeholder="Write your post content here..."
             />
             {errors.content && (
@@ -83,10 +87,7 @@ export default function CreatePost() {
           <button
             type="submit"
             disabled={isSubmitting || mutation.isPending}
-            className="w-full py-3 text-white font-semibold rounded-xl 
-                       bg-gradient-to-r from-purple-500 to-indigo-500 
-                       hover:from-purple-600 hover:to-indigo-600 
-                       transition-colors duration-300"
+            className="w-full py-2 rounded-lg border border-gray-300 bg-gray-900 text-white font-medium hover:bg-gray-800 transition disabled:opacity-50"
           >
             {mutation.isPending ? "Creating..." : "Create Post"}
           </button>
